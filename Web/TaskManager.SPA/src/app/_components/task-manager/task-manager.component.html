@@ -1,0 +1,188 @@
+<div class="row">
+    <div class="col-md-2">
+        <button class="btn btn-primary" (click)="displaySection('CONST_ADD_TASK')">
+            {{sectionButtonText}} Task</button>
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-primary" (click)="displaySection('CONST_VIEW_TASK')">View Task</button>
+    </div>
+</div>
+<div class="row mt-3" *ngIf="showAddTaskSection">
+    <div id="add-task" class="col-md-12">
+        <form id="taskManagerForm" class="col-md-12" [formGroup]="taskManagerForm"
+            (ngSubmit)="submitTaskManagerForm(taskManagerForm)">
+            <div class="form-group row required">
+                <label class="col-md-2 col-form-label" for="TaskName">Task Name</label>
+                <div class="col-md-4">
+                    <input id="txtTaskName" name="TaskName" class="form-control form-control-sm" type="text"
+                        formControlName="TaskName" autocomplete="off"
+                        [class.is-invalid]="TaskManagerForm['TaskName'].touched && TaskManagerForm['TaskName'].invalid">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label" for="Priority">Priority</label>
+                <div class="col-md-4">
+                    <input id="rngPriority" name="Priority" class="form-control form-control-sm" type="range"
+                        formControlName="Priority" list="tickMarks"
+                        [class.is-invalid]="TaskManagerForm['Priority'].touched && TaskManagerForm['Priority'].invalid"
+                        [min]="rangeSliderConfig.min" [max]="rangeSliderConfig.max" [step]="rangeSliderConfig.step">
+                    <datalist id="tickMarks">
+                        <option [value]="mark" [label]="mark" *ngFor="let mark of rangeSliderTickMarks">{{mark}}
+                        </option>
+                    </datalist>
+                    <output id="opPriority">{{rangeSliderConfig.value}}</output>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label" for="TaskName">Parent Task</label>
+                <div class="col-md-4">
+                    <select class="form-control form-control-sm" id="ddlParentTaskId" name="ParentTaskId"
+                        formControlName="ParentTaskId">
+                        <option [ngValue]="null">Please select</option>
+                        <option [value]="source.Id" *ngFor="let source of parentTasksLookUp">{{source.TaskName}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row required">
+                <label class="col-md-2 col-form-label" for="StartDate">StartDate</label>
+                <div class="col-md-4">
+                    <input id="txtStartDate" name="StartDate" class="form-control form-control-sm" type="text"
+                        formControlName="StartDate" autocomplete="off"
+                        [class.is-invalid]="TaskManagerForm['StartDate'].touched && TaskManagerForm['StartDate'].invalid"
+                        bsDatepicker [bsConfig]="datePickerConfig">
+                </div>
+            </div>
+
+            <div class="form-group row required">
+                <label class="col-md-2 col-form-label" for="EndDate">EndDate</label>
+                <div class="col-md-4">
+                    <input id="txtEndDate" name="EndDate" class="form-control form-control-sm" type="text"
+                        formControlName="EndDate" autocomplete="off"
+                        [class.is-invalid]="TaskManagerForm['EndDate'].touched  && TaskManagerForm['EndDate'].invalid"
+                        bsDatepicker [bsConfig]="datePickerConfig">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-1">
+                    <button class="btn btn-sm btn-success">{{sectionButtonText}}</button>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-sm btn-secondary" type="reset">Reset</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row mt-3" *ngIf="showViewTaskSection">
+    <form id="viewTaskManagerForm" class="col-md-12" (ngSubmit)="filterTasks()">
+        <div class="form-group row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="FilterTaskName">Task:</label>
+                    <input id="txtFilterTaskName" name="FilterTaskName" class="form-control form-control-sm" type="text"
+                        [(ngModel)]="taskManagerFilterCriteria.TaskName" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="FilterParentTask">Parent Task:</label>
+                    <select class="form-control form-control-sm" id="ddlFilterParentTaskId" name="FilterParentTaskId"
+                        [(ngModel)]="taskManagerFilterCriteria.ParentTaskId">
+                        <option [ngValue]="null">Please select</option>
+                        <option [value]="source.Id" *ngFor="let source of parentTasksLookUp">{{source.TaskName}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="FilterPriorityFrom">Priority From:</label>
+                    <input id="txtFilterPriorityFrom" name="FilterPriorityFrom" class="form-control form-control-sm"
+                        type="number" min="0" max="30" maxlength="2"
+                        [(ngModel)]="taskManagerFilterCriteria.PriorityFrom" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="FilterPriorityTo">Priority To:</label>
+                    <input id="txtFilterPriorityTo" name="FilterPriorityTo" class="form-control form-control-sm"
+                        type="number" min="0" max="30" maxlength="2" [(ngModel)]="taskManagerFilterCriteria.PriorityTo"
+                        autocomplete="off">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="FilterStartDate">Start Date:</label>
+                    <input id="txtFilterStartDate" name="FilterStartDate" class="form-control form-control-sm"
+                        type="text" [(ngModel)]="taskManagerFilterCriteria.StartDate" autocomplete="off" bsDatepicker
+                        [bsConfig]="datePickerConfig">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="FilterEndDate">End Date:</label>
+                    <input id="txtFilterEndDate" name="FilterEndDate" class="form-control form-control-sm" type="text"
+                        [(ngModel)]="taskManagerFilterCriteria.EndDate" autocomplete="off" bsDatepicker
+                        [bsConfig]="datePickerConfig">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-md-1">
+                <button class="btn btn-sm btn-success">Search</button>
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-sm btn-secondary" type="button"
+                    (click)="resetTaskManagerFilterCriteria()">Reset</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="col-md-12 mt-3">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Parent</th>
+                    <th>Priority</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody *ngIf="tasks != null || filteredTasks?.length > 0">
+                <tr *ngFor="let task of filteredTasks">
+                    <td style="width: 27%">{{task.TaskName}}</td>
+                    <td style="width: 27%">{{task.ParentTask != null ? task.ParentTask.TaskName: ''}}</td>
+                    <td style="width: 1%">{{task.Priority}}</td>
+                    <td style="width: 14%">{{task.StartDate | date: 'dd-MMM-yyyy'}}</td>
+                    <td style="width: 14%">{{task.EndDate | date: 'dd-MMM-yyyy'}}</td>
+                    <td style="width: 17%">
+                        <div *ngIf="task.IsTaskComplete == null && task.IsTaskComplete != true">
+                            <button class="btn btn-sm btn-secondary mr-1" (click)="editTask(task)">Edit</button>
+                            <button class="btn btn-sm btn-secondary" (click)="endTask(task.Id)">End Task</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+            <tbody *ngIf="filteredTasks == null || filteredTasks?.length == 0">
+                <tr>
+                    <td colspan="6">No data!</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
